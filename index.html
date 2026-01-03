@@ -595,6 +595,51 @@
             margin-top: 15px;
         }
 
+        .cta-banner {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(81, 224, 27, 0.15), rgba(81, 224, 27, 0.05));
+            border: 1px solid rgba(81, 224, 27, 0.3);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .cta-text {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .cta-text strong {
+            color: var(--accent-green);
+            font-family: 'Digitalt', monospace;
+        }
+
+        .cta-button {
+            background: var(--accent-green);
+            color: #000;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(81, 224, 27, 0.4);
+        }
+
+        @media (max-width: 500px) {
+            .cta-text {
+                font-size: 0.9rem;
+                text-align: center;
+            }
+        }
+
         /* Level Tabs */
         .level-tabs {
             display: flex;
@@ -1035,6 +1080,10 @@
                 <div class="top3-loading">Loading...</div>
             </div>
             <div class="champion-subtitle">Highest combined scores across all levels</div>
+            <div class="cta-banner" id="ctaBanner">
+                <span class="cta-text">⏰ You have <strong id="ctaTime">--</strong> left to claim the throne!</span>
+                <a href="#" class="cta-button" id="ctaDownload">Download & Compete</a>
+            </div>
         </div>
         
         <!-- Level Tabs -->
@@ -1260,6 +1309,7 @@
             if (distance < 0) {
                 document.getElementById('countdown').innerHTML = 
                     '<div style="color: var(--accent-gold); font-family: Digitalt;">Contest Ended!</div>';
+                document.getElementById('ctaBanner').style.display = 'none';
                 return;
             }
             
@@ -1272,6 +1322,17 @@
             document.getElementById('hours').textContent = String(hours).padStart(2, '0');
             document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
             document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            
+            // Update CTA time remaining
+            let ctaTimeText = '';
+            if (days > 0) {
+                ctaTimeText = `${days}d ${hours}h`;
+            } else if (hours > 0) {
+                ctaTimeText = `${hours}h ${minutes}m`;
+            } else {
+                ctaTimeText = `${minutes}m ${seconds}s`;
+            }
+            document.getElementById('ctaTime').textContent = ctaTimeText;
         }
         
         updateCountdown();
@@ -1432,6 +1493,11 @@
         document.getElementById('discordNav').href = CONFIG.discordUrl;
         document.getElementById('discordSocial').href = CONFIG.discordUrl;
         document.getElementById('discordContest').href = CONFIG.discordUrl;
+        
+        // CTA button - detect platform and link appropriately
+        const ctaBtn = document.getElementById('ctaDownload');
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        ctaBtn.href = isIOS ? CONFIG.appStoreUrl : CONFIG.googlePlayUrl;
     </script>
 </body>
 </html>
