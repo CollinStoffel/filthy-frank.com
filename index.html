@@ -510,6 +510,110 @@
             color: var(--text-gray);
         }
 
+        /* Overall Champion Banner */
+        .overall-champion {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, rgba(255, 197, 0, 0.2), rgba(255, 197, 0, 0.05));
+            border: 2px solid var(--accent-gold);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .champion-label {
+            font-family: 'Digitalt', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-gold);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .champion-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .champion-name {
+            font-family: 'Digitalt', monospace;
+            font-size: 2rem;
+            color: var(--text-white);
+        }
+
+        .champion-score {
+            font-family: 'Digitalt', monospace;
+            font-size: 1.5rem;
+            color: var(--accent-gold);
+        }
+
+        .champion-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            margin-top: 10px;
+        }
+
+        /* Level Tabs */
+        .level-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: 700px;
+            margin: 0 auto 25px;
+        }
+
+        .level-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .level-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-white);
+        }
+
+        .level-tab.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #000;
+        }
+
+        .level-title {
+            font-family: 'Digitalt', monospace;
+            font-size: 1.2rem;
+            color: var(--accent-green);
+            text-align: center;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 500px) {
+            .level-tabs {
+                gap: 5px;
+            }
+            .level-tab {
+                padding: 8px 12px;
+                font-size: 0.75rem;
+            }
+            .champion-name {
+                font-size: 1.5rem;
+            }
+            .champion-score {
+                font-size: 1.2rem;
+            }
+        }
+
         /* ============================================
            MIMA GUIDE SECTION
            ============================================ */
@@ -876,7 +980,7 @@
     </section>
 
     <!-- ============================================
-         LEADERBOARD SECTION - Clean Style
+         LEADERBOARD SECTION - Multi-Level with Overall Champion
          ============================================ -->
     <section class="leaderboard-section" id="leaderboard">
         <div class="section-header">
@@ -884,7 +988,28 @@
             <h2 class="section-title">Leaderboard</h2>
         </div>
         
+        <!-- Overall Champion Banner -->
+        <div class="overall-champion" id="overallChampion">
+            <div class="champion-label">👑 OVERALL CHAMPION</div>
+            <div class="champion-content">
+                <span class="champion-name" id="championName">Loading...</span>
+                <span class="champion-score" id="championScore"></span>
+            </div>
+            <div class="champion-subtitle">Highest combined score across all levels</div>
+        </div>
+        
+        <!-- Level Tabs -->
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="downtown_01">Downtown</button>
+            <button class="level-tab" data-level="industrial_01">Industrial</button>
+            <button class="level-tab" data-level="harbor_01">Harbor</button>
+            <button class="level-tab" data-level="financial_01">Financial</button>
+            <button class="level-tab" data-level="warehouse_01">Warehouse</button>
+            <button class="level-tab" data-level="citycenter_01">City Center</button>
+        </div>
+        
         <div class="leaderboard-container">
+            <div class="level-title" id="levelTitle">Downtown</div>
             <ul class="leaderboard-list" id="leaderboardList">
                 <li class="leaderboard-loading">Loading scores...</li>
             </ul>
@@ -1068,13 +1193,23 @@
         const CONFIG = {
             contestEndDate: new Date('2026-01-10T18:00:00'),
             firebase: {
-                databaseUrl: "https://filthyfrank-7d392-default-rtdb.europe-west1.firebasedatabase.app",
-                leaderboardKey: "downtown_01_leaderboard"
+                databaseUrl: "https://filthyfrank-7d392-default-rtdb.europe-west1.firebasedatabase.app"
+            },
+            levels: {
+                downtown_01: { key: "downtown_01_leaderboard", name: "Downtown" },
+                industrial_01: { key: "industrial_01_leaderboard", name: "Industrial" },
+                harbor_01: { key: "harbor_01_leaderboard", name: "Harbor" },
+                financial_01: { key: "financial_01_leaderboard", name: "Financial" },
+                warehouse_01: { key: "warehouse_01_leaderboard", name: "Warehouse" },
+                citycenter_01: { key: "citycenter_01_leaderboard", name: "City Center" }
             },
             appStoreUrl: "https://testflight.apple.com/join/hXkUVUbs",
             googlePlayUrl: "https://play.google.com/store/apps/details?id=com.filthyfrank.app",
             discordUrl: "https://discord.gg/ke2pYVBnZ4"
         };
+        
+        let currentLevel = 'downtown_01';
+        let allLevelScores = {};
 
         // ============================================
         // COUNTDOWN TIMER
@@ -1104,59 +1239,102 @@
         setInterval(updateCountdown, 1000);
 
         // ============================================
-        // LEADERBOARD
+        // LEADERBOARD - Multi-Level System
         // ============================================
-        async function fetchLeaderboard() {
-            const leaderboardEl = document.getElementById('leaderboardList');
+        
+        // Fetch scores for a specific level
+        async function fetchLevelScores(levelId) {
+            const levelConfig = CONFIG.levels[levelId];
+            if (!levelConfig) return [];
             
             try {
-                const url = `${CONFIG.firebase.databaseUrl}/leaderboards/${CONFIG.firebase.leaderboardKey}.json`;
+                const url = `${CONFIG.firebase.databaseUrl}/leaderboards/${levelConfig.key}.json`;
                 const response = await fetch(url);
                 
-                if (!response.ok) throw new Error('Failed to fetch');
+                if (!response.ok) return [];
                 
                 const data = await response.json();
                 
-                if (!data || Object.keys(data).length === 0) {
-                    leaderboardEl.innerHTML = '<li class="leaderboard-loading">No scores yet. Be the first!</li>';
-                    return;
-                }
+                if (!data || Object.keys(data).length === 0) return [];
                 
-                const scores = Object.entries(data)
+                return Object.entries(data)
                     .map(([id, entry]) => ({
+                        id: id,
                         name: entry.player_name || 'Anonymous',
                         score: parseInt(entry.score || 0)
                     }))
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 10);
-                
-                renderLeaderboard(scores);
+                    .sort((a, b) => b.score - a.score);
             } catch (error) {
-                console.error('Leaderboard error:', error);
-                renderLeaderboard(getDemoData());
+                console.error(`Error fetching ${levelId}:`, error);
+                return [];
             }
         }
         
-        function getDemoData() {
-            return [
-                { name: "TopPlayer", score: 1247500 },
-                { name: "ProGamer", score: 985200 },
-                { name: "SpeedKing", score: 872100 },
-                { name: "NightOwl", score: 654300 },
-                { name: "CasualPro", score: 543200 },
-                { name: "ShadowX", score: 432100 },
-                { name: "BlitzMaster", score: 321000 },
-                { name: "RogueOne", score: 287500 },
-                { name: "StealthKing", score: 198700 },
-                { name: "NewPlayer", score: 95400 }
-            ];
+        // Fetch all levels and calculate overall champion
+        async function fetchAllLeaderboards() {
+            const levelIds = Object.keys(CONFIG.levels);
+            
+            // Fetch all levels in parallel
+            const results = await Promise.all(
+                levelIds.map(id => fetchLevelScores(id))
+            );
+            
+            // Store scores by level
+            levelIds.forEach((id, index) => {
+                allLevelScores[id] = results[index];
+            });
+            
+            // Calculate overall champion (highest combined score per player)
+            calculateOverallChampion();
+            
+            // Render current level
+            renderLevelLeaderboard(currentLevel);
         }
         
-        function renderLeaderboard(scores) {
+        // Calculate overall champion based on combined scores
+        function calculateOverallChampion() {
+            const playerTotals = {};
+            
+            // Sum up all scores per player across all levels
+            Object.values(allLevelScores).forEach(levelScores => {
+                levelScores.forEach(entry => {
+                    if (!playerTotals[entry.name]) {
+                        playerTotals[entry.name] = 0;
+                    }
+                    playerTotals[entry.name] += entry.score;
+                });
+            });
+            
+            // Find the champion
+            let champion = { name: 'No scores yet', score: 0 };
+            Object.entries(playerTotals).forEach(([name, score]) => {
+                if (score > champion.score) {
+                    champion = { name, score };
+                }
+            });
+            
+            // Update champion display
+            document.getElementById('championName').textContent = champion.name;
+            document.getElementById('championScore').textContent = 
+                champion.score > 0 ? champion.score.toLocaleString() + ' pts' : '';
+        }
+        
+        // Render leaderboard for a specific level
+        function renderLevelLeaderboard(levelId) {
+            const scores = allLevelScores[levelId] || [];
+            const levelName = CONFIG.levels[levelId]?.name || levelId;
+            
+            document.getElementById('levelTitle').textContent = levelName;
+            
             const el = document.getElementById('leaderboardList');
             const icons = ['👑', '🥈', '🥉'];
             
-            el.innerHTML = scores.map((p, i) => {
+            if (scores.length === 0) {
+                el.innerHTML = '<li class="leaderboard-loading">No scores yet. Be the first!</li>';
+                return;
+            }
+            
+            el.innerHTML = scores.slice(0, 10).map((p, i) => {
                 const rank = i + 1;
                 const topClass = rank <= 3 ? `top-${rank}` : '';
                 const icon = rank <= 3 ? `<span class="rank-icon">${icons[i]}</span>` : '';
@@ -1180,8 +1358,22 @@
             return div.innerHTML;
         }
         
-        fetchLeaderboard();
-        setInterval(fetchLeaderboard, 30000);
+        // Tab switching
+        document.querySelectorAll('.level-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Switch level
+                currentLevel = tab.dataset.level;
+                renderLevelLeaderboard(currentLevel);
+            });
+        });
+        
+        // Initial load
+        fetchAllLeaderboards();
+        setInterval(fetchAllLeaderboards, 30000);
 
         // ============================================
         // LINKS
