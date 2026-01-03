@@ -526,33 +526,73 @@
             font-size: 0.9rem;
             color: var(--accent-gold);
             letter-spacing: 2px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
-        .champion-content {
+        .top3-list {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .top3-loading {
+            color: var(--text-gray);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .top3-item {
+            display: flex;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            gap: 15px;
         }
 
-        .champion-name {
-            font-family: 'Digitalt', monospace;
-            font-size: 2rem;
-            color: var(--text-white);
+        .top3-item.rank-1 {
+            background: linear-gradient(135deg, rgba(255, 197, 0, 0.3), rgba(255, 197, 0, 0.1));
+            border: 1px solid rgba(255, 197, 0, 0.5);
         }
 
-        .champion-score {
-            font-family: 'Digitalt', monospace;
+        .top3-item.rank-2 {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05));
+            border: 1px solid rgba(192, 192, 192, 0.3);
+        }
+
+        .top3-item.rank-3 {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
+            border: 1px solid rgba(205, 127, 50, 0.3);
+        }
+
+        .top3-rank {
             font-size: 1.5rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .top3-name {
+            font-family: 'Digitalt', monospace;
+            font-size: 1.3rem;
+            color: var(--text-white);
+            flex: 1;
+        }
+
+        .top3-score {
+            font-family: 'Digitalt', monospace;
+            font-size: 1.1rem;
             color: var(--accent-gold);
         }
+
+        .rank-1 .top3-score { color: #FFD700; }
+        .rank-2 .top3-score { color: #C0C0C0; }
+        .rank-3 .top3-score { color: #CD7F32; }
 
         .champion-subtitle {
             font-size: 0.8rem;
             color: var(--text-gray);
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         /* Level Tabs */
@@ -988,14 +1028,13 @@
             <h2 class="section-title">Leaderboard</h2>
         </div>
         
-        <!-- Overall Champion Banner -->
+        <!-- Overall Top 3 Banner -->
         <div class="overall-champion" id="overallChampion">
-            <div class="champion-label">👑 OVERALL CHAMPION</div>
-            <div class="champion-content">
-                <span class="champion-name" id="championName">Loading...</span>
-                <span class="champion-score" id="championScore"></span>
+            <div class="champion-label">🏆 OVERALL TOP 3</div>
+            <div class="top3-list" id="top3List">
+                <div class="top3-loading">Loading...</div>
             </div>
-            <div class="champion-subtitle">Highest combined score across all levels</div>
+            <div class="champion-subtitle">Highest combined scores across all levels</div>
         </div>
         
         <!-- Level Tabs -->
@@ -1291,7 +1330,7 @@
             renderLevelLeaderboard(currentLevel);
         }
         
-        // Calculate overall champion based on combined scores
+        // Calculate overall top 3 based on combined scores
         function calculateOverallChampion() {
             const playerTotals = {};
             
@@ -1305,18 +1344,28 @@
                 });
             });
             
-            // Find the champion
-            let champion = { name: 'No scores yet', score: 0 };
-            Object.entries(playerTotals).forEach(([name, score]) => {
-                if (score > champion.score) {
-                    champion = { name, score };
-                }
-            });
+            // Sort and get top 3
+            const top3 = Object.entries(playerTotals)
+                .map(([name, score]) => ({ name, score }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 3);
             
-            // Update champion display
-            document.getElementById('championName').textContent = champion.name;
-            document.getElementById('championScore').textContent = 
-                champion.score > 0 ? champion.score.toLocaleString() + ' pts' : '';
+            // Update top 3 display
+            const top3El = document.getElementById('top3List');
+            const rankIcons = ['👑', '🥈', '🥉'];
+            
+            if (top3.length === 0) {
+                top3El.innerHTML = '<div class="top3-loading">No scores yet. Be the first!</div>';
+                return;
+            }
+            
+            top3El.innerHTML = top3.map((player, i) => `
+                <div class="top3-item rank-${i + 1}">
+                    <span class="top3-rank">${rankIcons[i]}</span>
+                    <span class="top3-name">${escapeHtml(player.name)}</span>
+                    <span class="top3-score">${player.score.toLocaleString()}</span>
+                </div>
+            `).join('');
         }
         
         // Render leaderboard for a specific level
