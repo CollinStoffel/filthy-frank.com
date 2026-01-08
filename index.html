@@ -1037,10 +1037,34 @@
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(10, 15, 15, 0.98);
+                flex-direction: column;
+                padding: 20px;
+                gap: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links a, .nav-links .nav-play {
+                padding: 12px 15px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+                text-align: center;
             }
 
             .nav-toggle {
                 display: block;
+            }
+
+            .nav {
+                position: relative;
             }
 
             .hero-title {
@@ -1667,6 +1691,27 @@
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closePlayable();
         });
+
+        // ============================================
+        // MOBILE NAV TOGGLE
+        // ============================================
+        const navToggle = document.querySelector('.nav-toggle');
+        const navLinks = document.querySelector('.nav-links');
+
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', () => {
+                navLinks.classList.toggle('open');
+                navToggle.textContent = navLinks.classList.contains('open') ? '✕' : '☰';
+            });
+
+            // Close mobile menu when clicking a link
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('open');
+                    navToggle.textContent = '☰';
+                });
+            });
+        }
     </script>
 </body>
 </html>
