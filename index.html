@@ -158,6 +158,79 @@
             color: white !important;
         }
 
+        /* ============================================
+           PLAYABLE DEMO (NON-INTRUSIVE)
+           ============================================ */
+        .nav-play {
+            background: rgba(81, 224, 27, 0.12);
+            border: 1px solid rgba(81, 224, 27, 0.35);
+            padding: 8px 14px;
+            border-radius: 999px;
+            color: var(--text-white) !important;
+            font-weight: 700;
+        }
+
+        .nav-play:hover {
+            background: rgba(81, 224, 27, 0.2);
+            border-color: rgba(81, 224, 27, 0.55);
+            transform: translateY(-1px);
+        }
+
+        .playable-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: none;
+            place-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            padding: 16px;
+        }
+
+        .playable-modal.open {
+            display: grid;
+        }
+
+        .playable-shell {
+            width: min(420px, 100%);
+            aspect-ratio: 360 / 640;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 197, 0, 0.25);
+            background: rgba(10, 15, 15, 0.9);
+            box-shadow: 0 26px 80px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .playable-iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #000;
+        }
+
+        .playable-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(0, 0, 0, 0.38);
+            color: white;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 18px;
+            z-index: 5;
+        }
+
+        .playable-close:hover {
+            background: rgba(0, 0, 0, 0.55);
+        }
+
         /* Mobile nav toggle */
         .nav-toggle {
             display: none;
@@ -1016,6 +1089,7 @@
                 <a href="#contest">Contest</a>
                 <a href="#leaderboard">Leaderboard</a>
                 <a href="#screenshots">Screenshots</a>
+                <a href="#" class="nav-play" id="playDemoBtn">Play Demo</a>
                 <a href="#" class="nav-discord" id="discordNav">Discord</a>
             </div>
             <button class="nav-toggle" aria-label="Menu">☰</button>
@@ -1311,6 +1385,14 @@
         <p class="copyright">© 2026 Filthy Frank. All rights reserved.</p>
     </footer>
 
+    <!-- Playable Demo Modal (non-intrusive; opens on user click) -->
+    <div class="playable-modal" id="playableModal" aria-hidden="true">
+        <div class="playable-shell" role="dialog" aria-modal="true" aria-label="Playable demo">
+            <button class="playable-close" id="playableClose" aria-label="Close">✕</button>
+            <iframe class="playable-iframe" id="playableFrame" title="Playable demo" loading="lazy"></iframe>
+        </div>
+    </div>
+
     <!-- ============================================
          JAVASCRIPT
          ============================================ -->
@@ -1537,6 +1619,54 @@
         // CTA buttons
         document.getElementById('ctaIOS').href = CONFIG.appStoreUrl;
         document.getElementById('ctaAndroid').href = CONFIG.googlePlayUrl;
+
+        // ============================================
+        // PLAYABLE DEMO (modal)
+        // ============================================
+        const playableModal = document.getElementById('playableModal');
+        const playableFrame = document.getElementById('playableFrame');
+        const playableClose = document.getElementById('playableClose');
+        const playDemoBtn = document.getElementById('playDemoBtn');
+
+        function openPlayable() {
+            if (!playableModal || !playableFrame) return;
+            playableModal.classList.add('open');
+            playableModal.setAttribute('aria-hidden', 'false');
+            // Set src on open so it doesn't load or play audio until user intent.
+            playableFrame.src = 'playable/index.html';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePlayable() {
+            if (!playableModal || !playableFrame) return;
+            playableModal.classList.remove('open');
+            playableModal.setAttribute('aria-hidden', 'true');
+            // Remove src to stop audio and free resources.
+            playableFrame.src = '';
+            document.body.style.overflow = '';
+        }
+
+        if (playDemoBtn) {
+            playDemoBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openPlayable();
+            });
+        }
+
+        if (playableClose) {
+            playableClose.addEventListener('click', closePlayable);
+        }
+
+        if (playableModal) {
+            playableModal.addEventListener('click', (e) => {
+                // Click outside the phone shell closes
+                if (e.target === playableModal) closePlayable();
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePlayable();
+        });
     </script>
 </body>
 </html>

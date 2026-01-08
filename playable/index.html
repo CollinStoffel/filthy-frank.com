@@ -1,0 +1,57 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Playable - Survive the Wave</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="frame" aria-label="Playable frame">
+      <canvas id="game" width="360" height="640"></canvas>
+
+      <div id="hud">
+        <div id="topbar">
+          <div class="pill" id="pill-timer" aria-label="Time left">
+            <span class="pill-icon icon-time" aria-hidden="true"></span>
+            <span class="pill-value" id="hud-time">20</span>
+          </div>
+          <div class="pill" id="pill-money" aria-label="Cash collected">
+            <img class="pill-icon" src="./assets/img/cash.webp" alt="" />
+            <span class="pill-value" id="hud-money">0</span>
+          </div>
+          <div class="pill" id="pill-hp" aria-label="Health">
+            <img class="pill-icon" src="./assets/ui/heart.webp" alt="" />
+            <span class="pill-value" id="hud-hp">3</span>
+          </div>
+        </div>
+        <div id="hint" aria-label="How to play hint">
+          <img id="hint-logo" src="./assets/ui/logo.webp" alt="" />
+          <div id="hint-text">TAP &amp; DRAG TO START</div>
+        </div>
+      </div>
+
+      <div id="overlay" class="hidden" role="dialog" aria-modal="true">
+        <div class="panel">
+          <div class="title" id="overlay-title">PICK A</div>
+          <div class="subtitle" id="overlay-subtitle">POWERUP</div>
+          <div id="overlay-content"></div>
+          <div id="overlay-actions"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./bridge.js"></script>
+    <script src="./polyfills.js"></script>
+    <script src="./sfx.js"></script>
+    <script src="./game.js"></script>
+  </body>
+</html>
+
+
+
